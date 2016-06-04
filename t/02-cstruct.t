@@ -21,8 +21,27 @@ class Point3D is repr('CStruct') {
     has int64 $.z is rw;
 }
 
+class Point3DList is repr('CStruct') {
+  has Str $.name;
+  has int64 $.numpoints;
+  has Pointer[Point3D] $.points;
+  has Str $.version;
+}
+
 sub myaddr(Point3D --> Str)       is native('./02-cstruct') { * }
 sub shown(Point3D, int32 --> Str) is native('./02-cstruct') { * }
+sub bunchapoints() returns Point3DList is native('./02-cstruct') { * }
+
+my Point3DList $bunch = bunchapoints();
+my $points = LinearArray[Point3D].new-from-pointer(size => $bunch.numpoints, ptr => $bunch.points );
+for ^$bunch.numpoints -> $i {
+  is $points[$i].x, $i, "Point {$i}.x = $i";
+  is $points[$i].y, $i, "Point {$i}.x = $i";
+  is $points[$i].z, $i, "Point {$i}.x = $i";
+}
+
+is $bunch.name, "My Point3D List";
+is $bunch.version, "0.0.0.0.0.0.0.0";
 
 # Test basic properties
 my $size = 3 * nativesizeof(int64);
